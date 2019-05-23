@@ -50,7 +50,11 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    fetch("http://localhost:8080/feed/posts")
+    fetch("http://localhost:8080/feed/posts?page=" + page, {
+      headers: {
+        Authorization: 'Bearer ' + this.props.token
+      }
+    })
       .then(res => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch posts.");
@@ -124,7 +128,10 @@ class Feed extends Component {
 
     fetch(url, {
       method: method,
-      body: formData
+      body: formData,
+      headers: {
+        Authorization: 'Bearer ' + this.props.token
+      }
     })
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
@@ -177,7 +184,10 @@ class Feed extends Component {
   deletePostHandler = postId => {
     this.setState({ postsLoading: true });
     fetch("http://localhost:8080/feed/post/" + postId, {
-      method: "DELETE"
+      method: "DELETE",
+      headers: {
+        Authorization: 'Bearer ' + this.props.token
+      }
     })
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
@@ -209,22 +219,22 @@ class Feed extends Component {
   render() {
     return (
       <Fragment>
-        <ErrorHandler error={this.state.error} onHandle={this.errorHandler} />
+        <ErrorHandler error={ this.state.error } onHandle={ this.errorHandler } />
         <FeedEdit
-          editing={this.state.isEditing}
-          selectedPost={this.state.editPost}
-          loading={this.state.editLoading}
-          onCancelEdit={this.cancelEditHandler}
-          onFinishEdit={this.finishEditHandler}
+          editing={ this.state.isEditing }
+          selectedPost={ this.state.editPost }
+          loading={ this.state.editLoading }
+          onCancelEdit={ this.cancelEditHandler }
+          onFinishEdit={ this.finishEditHandler }
         />
         <section className="feed__status">
-          <form onSubmit={this.statusUpdateHandler}>
+          <form onSubmit={ this.statusUpdateHandler }>
             <Input
               type="text"
               placeholder="Your status"
               control="input"
-              onChange={this.statusInputChangeHandler}
-              value={this.state.status}
+              onChange={ this.statusInputChangeHandler }
+              value={ this.state.status }
             />
             <Button mode="flat" type="submit">
               Update
@@ -232,41 +242,41 @@ class Feed extends Component {
           </form>
         </section>
         <section className="feed__control">
-          <Button mode="raised" design="accent" onClick={this.newPostHandler}>
+          <Button mode="raised" design="accent" onClick={ this.newPostHandler }>
             New Post
           </Button>
         </section>
         <section className="feed">
-          {this.state.postsLoading && (
-            <div style={{ textAlign: "center", marginTop: "2rem" }}>
+          { this.state.postsLoading && (
+            <div style={ { textAlign: "center", marginTop: "2rem" } }>
               <Loader />
             </div>
-          )}
-          {this.state.posts.length <= 0 && !this.state.postsLoading ? (
-            <p style={{ textAlign: "center" }}>No posts found.</p>
-          ) : null}
-          {!this.state.postsLoading && (
+          ) }
+          { this.state.posts.length <= 0 && !this.state.postsLoading ? (
+            <p style={ { textAlign: "center" } }>No posts found.</p>
+          ) : null }
+          { !this.state.postsLoading && (
             <Paginator
-              onPrevious={this.loadPosts.bind(this, "previous")}
-              onNext={this.loadPosts.bind(this, "next")}
-              lastPage={Math.ceil(this.state.totalPosts / 2)}
-              currentPage={this.state.postPage}
+              onPrevious={ this.loadPosts.bind(this, "previous") }
+              onNext={ this.loadPosts.bind(this, "next") }
+              lastPage={ Math.ceil(this.state.totalPosts / 2) }
+              currentPage={ this.state.postPage }
             >
-              {this.state.posts.map(post => (
+              { this.state.posts.map(post => (
                 <Post
-                  key={post._id}
-                  id={post._id}
-                  author={post.creator.name}
-                  date={new Date(post.createdAt).toLocaleDateString("en-US")}
-                  title={post.title}
-                  image={post.imageUrl}
-                  content={post.content}
-                  onStartEdit={this.startEditPostHandler.bind(this, post._id)}
-                  onDelete={this.deletePostHandler.bind(this, post._id)}
+                  key={ post._id }
+                  id={ post._id }
+                  author={ post.creator.name }
+                  date={ new Date(post.createdAt).toLocaleDateString("en-US") }
+                  title={ post.title }
+                  image={ post.imageUrl }
+                  content={ post.content }
+                  onStartEdit={ this.startEditPostHandler.bind(this, post._id) }
+                  onDelete={ this.deletePostHandler.bind(this, post._id) }
                 />
-              ))}
+              )) }
             </Paginator>
-          )}
+          ) }
         </section>
       </Fragment>
     );
