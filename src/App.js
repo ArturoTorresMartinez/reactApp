@@ -58,34 +58,40 @@ class App extends Component {
 
   loginHandler = (event, authData) => {
     event.preventDefault();
+    const graphqlQuery = {
+      query: `{
+        login(email:"${authData.email}", password: "${authData.password}"){
+          token
+          userId
+        }
+      }`
+    };
     this.setState({ authLoading: true });
-    fetch("http://localhost:8080/auth/login", {
+    fetch("http://localhost:8080/graphql", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        email: authData.email,
-        password: authData.password
-      })
+      body: JSON.stringify(graphqlQuery)
     })
       .then(res => {
-        if (res.status === 422) {
-          throw new Error("Validation failed.");
-        }
-        if (res.status !== 200 && res.status !== 201) {
-          console.log("Error!");
-          throw new Error("Could not authenticate you!");
-        }
         return res.json();
       })
       .then(resData => {
+        if (resData.errors && resData.errors[0].status === 422) {
+          throw new Error(
+            "Validation failed, make sure email address is not used already"
+          );
+        }
+        if (resData.errors) {
+          throw new Error("User login failed");
+        }
         console.log(resData);
         this.setState({
           isAuth: true,
-          token: resData.token,
+          token: resData.data.login.token,
           authLoading: false,
-          userId: resData.userId
+          userId: resData.data.login.userId
         });
         localStorage.setItem("token", resData.token);
         localStorage.setItem("userId", resData.userId);
@@ -114,7 +120,7 @@ class App extends Component {
       mutation {
   createUser(userInput: {email:"${authData.signupForm.email.value}", name: "${
         authData.signupForm.name.value
-      }", password:"${authData.signupForm.password.value}"}){
+        }", password:"${authData.signupForm.password.value}"}){
     _id
     email
   }
@@ -169,24 +175,24 @@ class App extends Component {
         <Route
           path="/"
           exact
-          render={props => (
+          render={ props => (
             <LoginPage
-              {...props}
-              onLogin={this.loginHandler}
-              loading={this.state.authLoading}
+              { ...props }
+              onLogin={ this.loginHandler }
+              loading={ this.state.authLoading }
             />
-          )}
+          ) }
         />
         <Route
           path="/signup"
           exact
-          render={props => (
+          render={ props => (
             <SignupPage
-              {...props}
-              onSignup={this.signupHandler}
-              loading={this.state.authLoading}
+              { ...props }
+              onSignup={ this.signupHandler }
+              loading={ this.state.authLoading }
             />
-          )}
+          ) }
         />
         <Redirect to="/" />
       </Switch>
@@ -197,19 +203,19 @@ class App extends Component {
           <Route
             path="/"
             exact
-            render={props => (
-              <FeedPage userId={this.state.userId} token={this.state.token} />
-            )}
+            render={ props => (
+              <FeedPage userId={ this.state.userId } token={ this.state.token } />
+            ) }
           />
           <Route
             path="/:postId"
-            render={props => (
+            render={ props => (
               <SinglePostPage
-                {...props}
-                userId={this.state.userId}
-                token={this.state.token}
+                { ...props }
+                userId={ this.state.userId }
+                token={ this.state.token }
               />
-            )}
+            ) }
           />
           <Redirect to="/" />
         </Switch>
@@ -217,31 +223,31 @@ class App extends Component {
     }
     return (
       <Fragment>
-        {this.state.showBackdrop && (
-          <Backdrop onClick={this.backdropClickHandler} />
-        )}
-        <ErrorHandler error={this.state.error} onHandle={this.errorHandler} />
+        { this.state.showBackdrop && (
+          <Backdrop onClick={ this.backdropClickHandler } />
+        ) }
+        <ErrorHandler error={ this.state.error } onHandle={ this.errorHandler } />
         <Layout
           header={
             <Toolbar>
               <MainNavigation
-                onOpenMobileNav={this.mobileNavHandler.bind(this, true)}
-                onLogout={this.logoutHandler}
-                isAuth={this.state.isAuth}
+                onOpenMobileNav={ this.mobileNavHandler.bind(this, true) }
+                onLogout={ this.logoutHandler }
+                isAuth={ this.state.isAuth }
               />
             </Toolbar>
           }
           mobileNav={
             <MobileNavigation
-              open={this.state.showMobileNav}
+              open={ this.state.showMobileNav }
               mobile
-              onChooseItem={this.mobileNavHandler.bind(this, false)}
-              onLogout={this.logoutHandler}
-              isAuth={this.state.isAuth}
+              onChooseItem={ this.mobileNavHandler.bind(this, false) }
+              onLogout={ this.logoutHandler }
+              isAuth={ this.state.isAuth }
             />
           }
         />
-        {routes}
+        { routes }
       </Fragment>
     );
   }
