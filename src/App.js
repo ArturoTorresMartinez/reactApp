@@ -60,13 +60,17 @@ class App extends Component {
     event.preventDefault();
     const graphqlQuery = {
       query: `
-        {
-          login(email: "${authData.email}", password: "${authData.password}") {
+        query UserLogin($email: String!, $password: String!) {
+          login(email: $email, password: $password) {
             token
             userId
           }
         }
-      `
+      `,
+      variables: {
+        email: authData.email,
+        password: authData.password
+      }
     };
     this.setState({ authLoading: true });
     fetch('http://localhost:8080/graphql', {
@@ -119,17 +123,18 @@ class App extends Component {
     this.setState({ authLoading: true });
     const graphqlQuery = {
       query: `
-        mutation {
-          createUser(userInput: {email: "${
-            authData.signupForm.email.value
-          }", name:"${authData.signupForm.name.value}", password:"${
-        authData.signupForm.password.value
-      }"}) {
+        mutation createNewUser($email: String!, $name: String!, $password: String!){
+          createUser(userInput: {email: $email, name: $name, password:$password }) {
             _id
             email
           }
         }
-      `
+      `,
+      variables: {
+        email: authData.signupForm.email.value,
+        name: authData.signupForm.name.value,
+        password: authData.signupForm.password.value
+      }
     };
     fetch('http://localhost:8080/graphql', {
       method: 'POST',
@@ -180,24 +185,24 @@ class App extends Component {
         <Route
           path="/"
           exact
-          render={props => (
+          render={ props => (
             <LoginPage
-              {...props}
-              onLogin={this.loginHandler}
-              loading={this.state.authLoading}
+              { ...props }
+              onLogin={ this.loginHandler }
+              loading={ this.state.authLoading }
             />
-          )}
+          ) }
         />
         <Route
           path="/signup"
           exact
-          render={props => (
+          render={ props => (
             <SignupPage
-              {...props}
-              onSignup={this.signupHandler}
-              loading={this.state.authLoading}
+              { ...props }
+              onSignup={ this.signupHandler }
+              loading={ this.state.authLoading }
             />
-          )}
+          ) }
         />
         <Redirect to="/" />
       </Switch>
@@ -208,19 +213,19 @@ class App extends Component {
           <Route
             path="/"
             exact
-            render={props => (
-              <FeedPage userId={this.state.userId} token={this.state.token} />
-            )}
+            render={ props => (
+              <FeedPage userId={ this.state.userId } token={ this.state.token } />
+            ) }
           />
           <Route
             path="/:postId"
-            render={props => (
+            render={ props => (
               <SinglePostPage
-                {...props}
-                userId={this.state.userId}
-                token={this.state.token}
+                { ...props }
+                userId={ this.state.userId }
+                token={ this.state.token }
               />
-            )}
+            ) }
           />
           <Redirect to="/" />
         </Switch>
@@ -228,31 +233,31 @@ class App extends Component {
     }
     return (
       <Fragment>
-        {this.state.showBackdrop && (
-          <Backdrop onClick={this.backdropClickHandler} />
-        )}
-        <ErrorHandler error={this.state.error} onHandle={this.errorHandler} />
+        { this.state.showBackdrop && (
+          <Backdrop onClick={ this.backdropClickHandler } />
+        ) }
+        <ErrorHandler error={ this.state.error } onHandle={ this.errorHandler } />
         <Layout
           header={
             <Toolbar>
               <MainNavigation
-                onOpenMobileNav={this.mobileNavHandler.bind(this, true)}
-                onLogout={this.logoutHandler}
-                isAuth={this.state.isAuth}
+                onOpenMobileNav={ this.mobileNavHandler.bind(this, true) }
+                onLogout={ this.logoutHandler }
+                isAuth={ this.state.isAuth }
               />
             </Toolbar>
           }
           mobileNav={
             <MobileNavigation
-              open={this.state.showMobileNav}
+              open={ this.state.showMobileNav }
               mobile
-              onChooseItem={this.mobileNavHandler.bind(this, false)}
-              onLogout={this.logoutHandler}
-              isAuth={this.state.isAuth}
+              onChooseItem={ this.mobileNavHandler.bind(this, false) }
+              onLogout={ this.logoutHandler }
+              isAuth={ this.state.isAuth }
             />
           }
         />
-        {routes}
+        { routes }
       </Fragment>
     );
   }
